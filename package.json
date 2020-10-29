@@ -1,0 +1,29 @@
+{
+  "name": "@cnlabs/pg-repo",
+  "version": "1.0.0",
+  "description": "Postgress convinient repository",
+  "main": "pgRepo.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FedorMakeev/pg-repo.git"
+  },
+  "keywords": [
+    "postgress",
+    "repository"
+  ],
+  "author": "Fedor Makeev <fedor.makeev@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FedorMakeev/pg-repo/issues"
+  },
+  "homepage": "https://github.com/FedorMakeev/pg-repo#readme",
+  "dependencies": {
+    "pg": "^8.4.2"
+  },
+  "devDependencies": {
+    "jest": "^26.6.1"
+  }
+}
