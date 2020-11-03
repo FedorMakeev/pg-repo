@@ -11,14 +11,16 @@ const pool = new Pool();
 exports.executeSQL = async (query, errorMessage = `Can't get result set by query`) => {
     return new Promise(async (resolve, reject) => {
         const connection = await pool.connect()
-            .catch(e => reject(e));
-        connection.query(query)
-            .then(resultset => resolve(resultset.rows))
-            .catch(e => {
-                console.log(`${errorMessage} - ${e}`);
-                reject(e);
+            .then(connection => {
+                connection.query(query)
+                    .then(resultset => resolve(resultset.rows))
+                    .catch(e => {
+                        console.log(`${errorMessage} - ${e}`);
+                        reject(e);
+                    })
+                    .finally(() => connection.release());
             })
-            .finally(() => connection.release());
+            .catch(e => reject(e));
     });
 }
 

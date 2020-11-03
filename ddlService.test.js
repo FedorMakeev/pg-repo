@@ -29,8 +29,7 @@ describe('Service creates required tables', () => {
                     {
                         name: 'test_table_idx_01',
                         columns: ['id', 'value'],
-                        unique: true,
-                        type: 'btree'
+                        unique: true
                     },
                     {
                         name: 'test_table_idx_02',
@@ -38,10 +37,19 @@ describe('Service creates required tables', () => {
                         type: 'hash'
                     }
                 ]
+            },
+            test_table_2: {
+                columns: [
+                    {
+                        name: 'number',
+                        type: 'text'
+                    }
+                ]
             }
         }
 
-        await executeSQL('drop table "test_table"').catch(() => 'Who cares');
+        await executeSQL('drop table if exists "test_table"');
+        await executeSQL('drop table if exists "test_table_2"');
 
         const actual = await getTables();
         // check there is no such table at all
@@ -57,7 +65,6 @@ describe('Service creates required tables', () => {
             // check columns created correctly
             const actualColumns = await getColumns(table);
             const ddlColumns = ddlData[table].columns;
-            expect(actualColumns.length).toBe(ddlColumns.length);
             for (const dc of ddlColumns) {
                 const actualColumn = actualColumns.filter(ac => ac.column_name === dc.name)[0];
                 expect(actualColumn).toBeDefined();
@@ -66,14 +73,71 @@ describe('Service creates required tables', () => {
             }
 
             const actualIndices = await getIndices(table);
-            const ddlIndices = ddlData[table].indices;
+            const ddlIndices = ddlData[table].indices || [];
 
-            console.log("actualIndices");
-            console.log(actualIndices);
-            // console.log(ddlIndices);
+            // check if all given indices are in place
+            for (const di of ddlIndices) {
+                expect(actualIndices.filter(ai => ai.indexname === di.name).length).toBe(1);
+            }
+        }
+        ok();
+    })
 
-            expect(actualIndices.length).toBe(ddlIndices.length);
+    it('Add new columns to existing table', async (ok) => {
+        const tableName = 'test_table_3'
+        await executeSQL(`drop table if exists ${tableName}`);
+        const ddlDataBefore = {
+            test_table_3: {
+                columns: [
+                    {
+                        name: 'id',
+                        type: 'integer',
+                        nullable: true
+                    },
+                    {
+                        name: 'value',
+                        type: 'text'
+                    }
+                ]
+            }
+        }
 
+        // added 2 new columns
+        const ddlDataAfter = {
+            test_table_3: {
+                columns: [
+                    {
+                        name: 'id',
+                        type: 'integer',
+                        nullable: true
+                    },
+                    {
+                        name: 'value',
+                        type: 'text'
+                    },
+                    {
+                        name: 'timestamp',
+                        type: 'timestamp without time zone'
+                    },
+                    {
+                        name: 'data',
+                        type: 'json',
+                        nullable: true
+                    }
+                ]
+            }
+        }
+
+        await ensureTables(ddlDataBefore);
+        await ensureTables(ddlDataAfter);
+
+        const actualColumns = await getColumns(tableName);
+        const ddlColumns = ddlDataAfter[tableName].columns;
+        for (const dc of ddlColumns) {
+            const actualColumn = actualColumns.filter(ac => ac.column_name === dc.name)[0];
+            expect(actualColumn).toBeDefined();
+            expect(actualColumn.data_type).toEqual(dc.type);
+            expect(actualColumn.is_nullable).toEqual(!!dc.nullable ? 'YES' : 'NO');
         }
         ok();
     })
