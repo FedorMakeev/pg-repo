@@ -1,4 +1,4 @@
-const {getColumns, getIndices} = require("./metaService");
+const {getColumns, getIndices, getConstraints} = require("./metaService");
 require('dotenv').config();
 
 const {executeSQL} = require("./dmlService");
@@ -11,14 +11,13 @@ const getTables = async () => {
 }
 
 describe('Service creates required tables', () => {
-    it('Creates table with requested columns and indices', async (ok) => {
+    it('Creates table with requested columns, indices and constraints', async (ok) => {
         const ddlData = {
             test_table: {
                 columns: [
                     {
                         name: 'id',
-                        type: 'integer',
-                        nullable: true
+                        type: 'integer'
                     },
                     {
                         name: 'value',
@@ -35,6 +34,18 @@ describe('Service creates required tables', () => {
                         name: 'test_table_idx_02',
                         columns: ['id'],
                         type: 'hash'
+                    }
+                ],
+                constraints: [
+                    {
+                        name: 'constrain_one',
+                        type: 'primary key',
+                        columns: ['id']
+                    },
+                    {
+                        name: 'constrain_two',
+                        type: 'unique',
+                        columns: ['id', 'value']
                     }
                 ]
             },
@@ -79,6 +90,10 @@ describe('Service creates required tables', () => {
             for (const di of ddlIndices) {
                 expect(actualIndices.filter(ai => ai.indexname === di.name).length).toBe(1);
             }
+
+            const actualConstraints = await getConstraints(table);
+            const ddlConstraints = ddlData[table].constraints || [];
+            expect(actualConstraints.length).toEqual(ddlConstraints.length);
         }
         ok();
     })

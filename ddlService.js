@@ -1,4 +1,4 @@
-const {getIndices, getColumns} = require("./metaService");
+const {getIndices, getColumns, getConstraints} = require("./metaService");
 const {executeSQL} = require('./dmlService');
 
 exports.ensureTables = async (ddlData) => {
@@ -43,6 +43,20 @@ exports.ensureTables = async (ddlData) => {
                 console.log(`index ${itc.name} created`);
             }
         }
+
+        const ddlConstraints = ddlData[table].constraints || [];
+        if (ddlConstraints.length > 0) {
+            const actualConstraints = await getConstraints(table);
+            const constraintsToCreate = ddlConstraints.filter(ddlConstraint => !(actualConstraints.map(actualConstraint => actualConstraint.conname).includes(ddlConstraint.name)));
+            console.log('constraints to create are');
+            console.log(constraintsToCreate)
+            for (const ct of constraintsToCreate){
+                const sql = `alter table ${schema}.${table} add constraint ${ct.name} ${ct.type} (${ct.columns.join(',')})`;
+                await executeSQL(sql);
+                console.log(`Constraint ${ct.name} created`);
+            }
+        }
+
     }
     return {};
 }

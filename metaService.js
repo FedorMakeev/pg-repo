@@ -23,3 +23,22 @@ exports.getIndices = async (table) => {
         values: [table]
     })
 }
+
+/**
+ * Get all constraints for given table
+ * @param table
+ * @returns {Promise<{}>}
+ */
+exports.getConstraints = async (table) => {
+    return executeSQL({
+        text: "SELECT con.*\n" +
+            "       FROM pg_catalog.pg_constraint con\n" +
+            "            INNER JOIN pg_catalog.pg_class rel\n" +
+            "                       ON rel.oid = con.conrelid\n" +
+            "            INNER JOIN pg_catalog.pg_namespace nsp\n" +
+            "                       ON nsp.oid = connamespace\n" +
+            "       WHERE nsp.nspname = 'public'\n" +
+            "             AND rel.relname = $1;",
+        values: [table]
+    })
+}
