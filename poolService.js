@@ -19,6 +19,7 @@ const replica = 'replica';
 (async () => {
 
     if (!!process.env.POSTGRESS_CLUSTER) {
+        console.log('PG-repo: cluster environment');
         const hosts = process.env.POSTGRESS_CLUSTER.split(',');
         try {
             for (const host of hosts) {
@@ -30,15 +31,16 @@ const replica = 'replica';
                 })
 
                 currentPool.pg_repo_mode = (await isMaster(currentPool)) ? master : replica;
+                console.log(`PG-repo: pool created ${hostname}:${port} ${currentPool.pg_repo_mode}`);
                 pools.push(currentPool)
             }
 
             setInterval(async () => {
-                console.debug('PG-repo: Start checking pools');
+                console.log(`PG-repo: Start checking ${pools.length} pools`);
                 for (const pool of pools) {
                     pool.pg_repo_mode = (await isMaster(pool)) ? master : replica;
                 }
-                console.debug('PG-repo: Stop checking pools');
+                console.log('PG-repo: Stop checking pools');
             }, 10_000);
 
         } catch (e) {
@@ -48,6 +50,7 @@ const replica = 'replica';
             pools.unshift(fallBackPool);
         }
     } else {
+        console.log('PG-repo: single host environment');
         const defaultPool = new Pool();
         defaultPool.pg_repo_mode = master;
         pools.unshift(defaultPool);
@@ -62,5 +65,7 @@ module.exports.getPool = async (mode = master) => {
         a.unshift(pools.filter(p => p.pg_repo_mode === master)[0]);
     }
     const rnd = Math.round(Math.random() * 100);
-    return a[rnd % a.length];
+    const pool = a[rnd % a.length];
+    console.log(`PG-repo: pool requested/found ${mode}/${pool.pg_repo_mode}`);
+    return pool;
 }
