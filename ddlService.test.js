@@ -1,13 +1,11 @@
-const {getColumns, getIndices, getConstraints} = require("./metaService");
 require('dotenv').config();
+const {getColumns, getIndices, getConstraints} = require("./metaService");
 
 const {executeSQL} = require("./dmlService");
 const {ensureTables} = require("./ddlService")
 
 const getTables = async () => {
-    return executeSQL("select tablename,tableowner\n" +
-        "from pg_catalog.pg_tables\n" +
-        "where schemaname = 'public'");
+    return executeSQL("select tablename, tableowner from pg_catalog.pg_tables where schemaname = $1", ['public']);
 }
 
 describe('Service creates required tables', () => {
