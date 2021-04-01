@@ -1,6 +1,6 @@
 {
   "name": "@cnlabs/pg-repo",
-  "version": "2.1.1",
+  "version": "3.0.0",
   "description": "Postgress convinient repository",
   "main": "pgRepo.js",
   "scripts": {
@@ -12,7 +12,8 @@
   },
   "keywords": [
     "postgress",
-    "repository"
+    "repository",
+    "cluster"
   ],
   "author": "Fedor Makeev <fedor.makeev@gmail.com>",
   "license": "ISC",
