@@ -16,10 +16,15 @@ const init = new Promise(resolve => {
 const master = 'master';
 const replica = 'replica';
 
+const {PG_REPO_DEBUG, PG_REPO_POOL_CHECK_INTERVAL} = process.env;
+const pgdebug = (text) => PG_REPO_DEBUG && console.log(`PG-repo: ${text}`);
+const poolCheckInterval = (!!PG_REPO_POOL_CHECK_INTERVAL && +PG_REPO_POOL_CHECK_INTERVAL > 999) ? +PG_REPO_POOL_CHECK_INTERVAL : 10_000;
+pgdebug(JSON.stringify({poolCheckInterval}));
+
 (async () => {
 
     if (!!process.env.POSTGRESS_CLUSTER) {
-        console.log('PG-repo: cluster environment');
+        pgdebug('cluster environment');
         const hosts = process.env.POSTGRESS_CLUSTER.split(',');
         try {
             for (const host of hosts) {
@@ -31,17 +36,17 @@ const replica = 'replica';
                 })
 
                 currentPool.pg_repo_mode = (await isMaster(currentPool)) ? master : replica;
-                console.log(`PG-repo: pool created ${hostname}:${port} ${currentPool.pg_repo_mode}`);
+                pgdebug(`pool created ${hostname}:${port} ${currentPool.pg_repo_mode}`);
                 pools.push(currentPool)
             }
 
             setInterval(async () => {
-                console.log(`PG-repo: Start checking ${pools.length} pools`);
+                pgdebug(`start checking ${pools.length} pools`);
                 for (const pool of pools) {
                     pool.pg_repo_mode = (await isMaster(pool)) ? master : replica;
                 }
-                console.log('PG-repo: Stop checking pools');
-            }, 10_000);
+                pgdebug('stop checking pools');
+            }, poolCheckInterval);
 
         } catch (e) {
             console.error(e);
@@ -50,13 +55,13 @@ const replica = 'replica';
             pools.unshift(fallBackPool);
         }
     } else {
-        console.log('PG-repo: single host environment');
+        pgdebug('single host environment');
         const defaultPool = new Pool();
         defaultPool.pg_repo_mode = master;
         pools.unshift(defaultPool);
     }
     resolver();
-})()
+})();
 
 module.exports.getPool = async (mode = master) => {
     await init;
@@ -66,6 +71,6 @@ module.exports.getPool = async (mode = master) => {
     }
     const rnd = Math.round(Math.random() * 100);
     const pool = a[rnd % a.length];
-    console.log(`PG-repo: pool requested/found ${mode}/${pool.pg_repo_mode}`);
+    pgdebug(`pool requested/found ${mode}/${pool.pg_repo_mode}`);
     return pool;
 }

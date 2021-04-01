@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./pgRepo');
 const {getColumns, getIndices, getConstraints} = require("./metaService");
 
 const {executeSQL} = require("./dmlService");

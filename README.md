@@ -8,3 +8,6 @@ This is a simple module for Postgress, that takes care about:
 
 Set environment variable POSTGRESS_CLUSTER=host-1:port-1,host-2:port-2,host-3:port-3 for cluster support
 
+Set environment variable PG_REPO_DEBUG = true to see debug messages
+
+Set environment variable PG_REPO_POOL_CHECK_INTERVAL (min value - 1000) in ms for refreshing servers roles in cluster
