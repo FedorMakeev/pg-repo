@@ -35,6 +35,7 @@ exports.ensureTables = async (ddlData) => {
                 terms.push('create');
                 itc.unique && terms.push('unique');
                 terms.push('index');
+                terms.push('concurrently');
                 terms.push(`${itc.name} on ${schema}.${table}`);
                 terms.push(`using ${itc.type || 'btree'}`);
                 terms.push(`(${itc.columns.join(',')})`);
