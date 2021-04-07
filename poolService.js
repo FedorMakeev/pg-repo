@@ -16,13 +16,13 @@ const init = new Promise(resolve => {
 const master = 'master';
 const replica = 'replica';
 
-const {PG_REPO_DEBUG, PG_REPO_POOL_CHECK_INTERVAL} = process.env;
+const {PG_REPO_DEBUG, PG_REPO_POOL_CHECK_INTERVAL, PG_POOL_SIZE} = process.env;
 const pgdebug = (text) => PG_REPO_DEBUG && console.log(`PG-repo: ${text}`);
 const poolCheckInterval = (!!PG_REPO_POOL_CHECK_INTERVAL && +PG_REPO_POOL_CHECK_INTERVAL > 999) ? +PG_REPO_POOL_CHECK_INTERVAL : 10_000;
+const max = (!!PG_POOL_SIZE && +PG_POOL_SIZE >= 10) ? +process.env.PG_POOL_SIZE : 10;
 pgdebug(JSON.stringify({poolCheckInterval}));
 
 (async () => {
-
     if (!!process.env.POSTGRESS_CLUSTER) {
         pgdebug('cluster environment');
         const hosts = process.env.POSTGRESS_CLUSTER.split(',');
@@ -32,7 +32,8 @@ pgdebug(JSON.stringify({poolCheckInterval}));
 
                 const currentPool = new Pool({
                     host: hostname,
-                    port: port || 6432
+                    port: port || 6432,
+                    max
                 })
 
                 currentPool.pg_repo_mode = (await isMaster(currentPool)) ? master : replica;

@@ -1,6 +1,6 @@
 {
   "name": "@cnlabs/pg-repo",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "Postgress convinient repository",
   "main": "pgRepo.js",
   "scripts": {
